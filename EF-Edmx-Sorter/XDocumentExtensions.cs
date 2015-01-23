@@ -17,5 +17,10 @@
         {
             return container.Descendants().Where(x => x.Name.LocalName == localName);
         }
+
+        public static string NameAttribute(this XElement element)
+        {
+            return element.Attribute("Name").Value;
+        }
     }
 }

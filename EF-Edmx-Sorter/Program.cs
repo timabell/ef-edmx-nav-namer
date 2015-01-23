@@ -88,8 +88,8 @@ namespace EfEdmxSorter
 
         private static void ApplyStorageSort(XElement entity, List<XElement> storageEntities)
         {
-            var entityName = entity.Attribute("Name").Value;
-            var storageEntity = storageEntities.SingleOrDefault(s => s.Attribute("Name").Value == entityName);
+            var entityName = entity.NameAttribute();
+            var storageEntity = storageEntities.SingleOrDefault(s => s.NameAttribute() == entityName);
             if (storageEntity == null)
             {
                 Console.Error.WriteLine("{0} exists in conceptual model but not in storage model, skipped.", entityName);
@@ -107,12 +107,12 @@ namespace EfEdmxSorter
         private static IEnumerable<XElement> StorageSorterInner(IEnumerable<XElement> input, IEnumerable<XElement> storageProps)
         {
             // todo: use storage props as sort source
-            return input.OrderByDescending(p => p.Attribute("Name").Value);
+            return input.OrderByDescending(p => p.NameAttribute());
         }
 
         private static IEnumerable<XElement> AlphabeticalSorter(IEnumerable<XElement> input)
         {
-            return input.OrderBy(p => p.Attribute("Name").Value);
+            return input.OrderBy(p => p.NameAttribute());
         }
 
         private static void ReorderProperties(XContainer entity, Func<IEnumerable<XElement>, IEnumerable<XElement>> sorter)
