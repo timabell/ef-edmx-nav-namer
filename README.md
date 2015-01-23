@@ -1,47 +1,20 @@
 About
 =====
 
-Project site: https://github.com/timabell/ef-document-generator
+Project site: https://github.com/timabell/ef-edmx-sorter
 
-Reads a db schema and then adds/updates the documentation in the matching `.emdx` file.
+Re-orders the conceptual model properties in a `.edmx` file to match the order of the storage model properties
 
-This is a fork of http://eftsqldocgenerator.codeplex.com/ fixed-up for EF5
+Created to solve this annoyance http://stackoverflow.com/q/3498052/10245 and save me a bunch of time.
+
+Source code of https://github.com/timabell/ef-document-generator used as a starting point for creating this.
 
 Usage
 =====
 
-	EFTSQLDocumentation.Generator.exe 	\
-		-c "server=.;database=yourdatabase;Integrated Security=SSPI"  \
-		-i path\to\your\Model.edmx
-
-Arguments
----------
-
-* -c, --connectionString... ConnectionString of the documented database
-* -i, --input... original edmx file
-* -o, --output [optional] ... output edmx file - Default : original edmx file
-
-What now?
----------
-
-You may want to get the comments to be added to your generated model classes.
-You can do that by modifying your model.tt file as follows: https://gist.github.com/timabell/74bb6c6bbb7a4de843dc
-
-With that in place you will have consistent model documentation across your
-schema, edmx and c# model, with the tooling to keep them in sync.
+    ef-edmx-sorter.exe -i path\to\your\Model.edmx
 
 Licence
 =======
 
-Apache 2.0 as per upstream: http://eftsqldocgenerator.codeplex.com/license
-
-
-Download
-========
-
-Get the binary from https://github.com/timabell/ef-document-generator/releases/latest
-
-Links
-=====
-
-* Why? Because: http://stackoverflow.com/questions/2747788/how-can-i-make-the-entity-data-model-designer-use-my-database-column-descriptions
+Apache 2.0 https://www.apache.org/licenses/LICENSE-2.0 as per the project this was based on.
