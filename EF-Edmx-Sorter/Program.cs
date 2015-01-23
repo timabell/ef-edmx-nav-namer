@@ -106,8 +106,22 @@ namespace EfEdmxSorter
 
         private static IEnumerable<XElement> StorageSorterInner(IEnumerable<XElement> input, IEnumerable<XElement> storageProps)
         {
-            // todo: use storage props as sort source
-            return input.OrderByDescending(p => p.NameAttribute());
+            var output = new List<XElement>();
+            var hitList = input.ToList();
+            foreach (var storageProp in storageProps)
+            {
+                var hit = hitList.SingleOrDefault(x => x.NameAttribute() == storageProp.NameAttribute());
+                if (hit == null)
+                {
+                    // storage prop has no matching conceptual property, ignore
+                    continue;
+                }
+                output.Add(hit);
+                hitList.Remove(hit);
+            }
+            // put anything that wasn't found in the storage model at the end just so we don't drop it completely
+            output.AddRange(hitList);
+            return output;
         }
 
         private static IEnumerable<XElement> AlphabeticalSorter(IEnumerable<XElement> input)
