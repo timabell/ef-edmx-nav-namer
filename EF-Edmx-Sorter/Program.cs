@@ -74,7 +74,7 @@ namespace EfEdmxSorter
             doc.Save(InputFileName);
         }
 
-        private static void ReorderProperties(XElement entity)
+        private static void ReorderProperties(XContainer entity)
         {
             var props = entity.FindByLocalName("Property").ToList();
             // clear
@@ -95,18 +95,6 @@ namespace EfEdmxSorter
                 throw new Exception(string.Format("Loaded XDocument Root is null. File: {0}", InputFileName));
             }
             return doc;
-        }
-
-        private void AddNodeDocumentation(XElement element, String documentation)
-        {
-            // remove stale documentation
-            element.FindByLocalName("Documentation").Remove();
-
-            if (String.IsNullOrEmpty(documentation))
-                return;
-            var xmlns = element.GetDefaultNamespace();
-
-            element.AddFirst(new XElement(xmlns + "Documentation", new XElement(xmlns + "Summary", documentation)));
         }
     }
 }
