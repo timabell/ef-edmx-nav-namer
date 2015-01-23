@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -63,7 +64,7 @@ namespace EfEdmxSorter
             var entities = conceptualModel.FindByLocalName("EntityType");
             foreach (var entity in entities)
             {
-                ReorderProperties(entity);
+                ReorderProperties(entity, AlphabeticalSorter);
             }
 
             Console.WriteLine("Writing result to {0}", InputFileName);
@@ -74,13 +75,18 @@ namespace EfEdmxSorter
             doc.Save(InputFileName);
         }
 
-        private static void ReorderProperties(XContainer entity)
+        private static IEnumerable<XElement> AlphabeticalSorter(IEnumerable<XElement> input)
+        {
+            return input.OrderBy(p => p.Attribute("Name").Value);
+        } 
+
+        private static void ReorderProperties(XContainer entity, Func<IEnumerable<XElement>, IEnumerable<XElement>> sorter )
         {
             var props = entity.FindByLocalName("Property").ToList();
             // clear
             props.Remove();
             // re-add in new order, will be added to end
-            foreach (var prop in props.OrderBy(p => p.Attribute("Name").Value))
+            foreach (var prop in sorter(props).ToList())
             {
                 entity.Add(prop);
             }
