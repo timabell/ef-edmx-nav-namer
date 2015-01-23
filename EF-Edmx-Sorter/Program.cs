@@ -12,6 +12,9 @@ namespace EfEdmxSorter
 
     class Program
     {
+
+        private SortMethod _sortMethod;
+
         static void Main(string[] args)
         {
             var parser = CreateParser();
@@ -29,10 +32,17 @@ namespace EfEdmxSorter
 
 
             var inputFileName = ((FileArgument)parser.LookupArgument("input")).Value.FullName;
+            var sortMethodArg = ((ValueArgument<string>)parser.LookupArgument("sort")).Value;
+            var sortMethod = SortMethod.StorageModel;
+            if (sortMethodArg !=null && !Enum.TryParse(sortMethodArg, true, out sortMethod))
+            {
+                Console.Error.WriteLine("Invalid sort type");
+                parser.ShowUsage();
+            }
 
-            var p = new Program(inputFileName);
+            var p = new Program(inputFileName, sortMethod);
 
-            p.ReorderConceptualProperties(SortMethod.StorageModel);
+            p.ReorderConceptualProperties();
         }
 
         private static CommandLineParser.CommandLineParser CreateParser()
@@ -40,18 +50,20 @@ namespace EfEdmxSorter
             var parser = new CommandLineParser.CommandLineParser { IgnoreCase = true };
 
             parser.Arguments.Add(new FileArgument('i', "input", "original edmx file") { FileMustExist = true, Optional = false });
+            parser.Arguments.Add(new ValueArgument<string>('s', "sort", "how to sort the properties, None, Alphabetical or StorageModel (default)"));
 
             return parser;
         }
 
         public String InputFileName { get; set; }
 
-        public Program(String inputFileName)
+        public Program(string inputFileName, SortMethod sortMethod)
         {
             InputFileName = inputFileName;
+            _sortMethod = sortMethod;
         }
 
-        private void ReorderConceptualProperties(SortMethod sortMethod)
+        private void ReorderConceptualProperties()
         {
             // find the storage model, load all the tables and properties, remember the order
             // find the conceptual model, re-order all the properties to match the storage model
@@ -65,7 +77,7 @@ namespace EfEdmxSorter
             var entities = conceptualModel.FindByLocalName("EntityType");
             foreach (var entity in entities)
             {
-                switch (sortMethod)
+                switch (_sortMethod)
                 {
                     case SortMethod.None:
                         ReorderElements(entity, (x) => x, "Property");
@@ -77,7 +89,7 @@ namespace EfEdmxSorter
                         ApplyStorageSort(entity, storageEntities);
                         break;
                     default:
-                        throw new NotImplementedException(string.Format("Unknown sort method {0}", sortMethod));
+                        throw new NotImplementedException(string.Format("Unknown sort method {0}", _sortMethod));
                 }
                 // move navigation properties to end, leaving in original order
                 ReorderElements(entity, (x) => x, "NavigationProperty");
