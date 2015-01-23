@@ -32,7 +32,7 @@ namespace EfEdmxSorter
 
             var p = new Program(inputFileName);
 
-            p.ReorderConceptualProperties();
+            p.ReorderConceptualProperties(SortMethod.StorageModel);
         }
 
         private static CommandLineParser.CommandLineParser CreateParser()
@@ -51,7 +51,7 @@ namespace EfEdmxSorter
             InputFileName = inputFileName;
         }
 
-        private void ReorderConceptualProperties()
+        private void ReorderConceptualProperties(SortMethod sortMethod)
         {
             // find the storage model, load all the tables and properties, remember the order
             // find the conceptual model, re-order all the properties to match the storage model
@@ -59,12 +59,23 @@ namespace EfEdmxSorter
             var doc = LoadEdmx();
 
             var storageModel = doc.FindByLocalName("StorageModels").First();
+            var storageEntities = storageModel.FindByLocalName("EntityType").ToList();
 
             var conceptualModel = doc.FindByLocalName("ConceptualModels").First();
             var entities = conceptualModel.FindByLocalName("EntityType");
             foreach (var entity in entities)
             {
-                ReorderProperties(entity, AlphabeticalSorter);
+                switch (sortMethod)
+                {
+                    case SortMethod.Alphabetical:
+                        ReorderProperties(entity, AlphabeticalSorter);
+                        break;
+                    case SortMethod.StorageModel:
+                        ApplyStorageSort(entity, storageEntities);
+                        break;
+                    default:
+                        throw new NotImplementedException(string.Format("Unknown sort method {0}", sortMethod));
+                }
             }
 
             Console.WriteLine("Writing result to {0}", InputFileName);
@@ -75,12 +86,36 @@ namespace EfEdmxSorter
             doc.Save(InputFileName);
         }
 
+        private static void ApplyStorageSort(XElement entity, List<XElement> storageEntities)
+        {
+            var entityName = entity.Attribute("Name").Value;
+            var storageEntity = storageEntities.SingleOrDefault(s => s.Attribute("Name").Value == entityName);
+            if (storageEntity == null)
+            {
+                Console.Error.WriteLine("{0} exists in conceptual model but not in storage model, skipped.", entityName);
+                return;
+            }
+            var storageProps = storageEntity.FindByLocalName("Property");
+            ReorderProperties(entity, StorageSorter(storageProps));
+        }
+
+        private static Func<IEnumerable<XElement>, IEnumerable<XElement>> StorageSorter(IEnumerable<XElement> storageProps)
+        {
+            return (input) => StorageSorterInner(input, storageProps);
+        }
+
+        private static IEnumerable<XElement> StorageSorterInner(IEnumerable<XElement> input, IEnumerable<XElement> storageProps)
+        {
+            // todo: use storage props as sort source
+            return input.OrderByDescending(p => p.Attribute("Name").Value);
+        }
+
         private static IEnumerable<XElement> AlphabeticalSorter(IEnumerable<XElement> input)
         {
             return input.OrderBy(p => p.Attribute("Name").Value);
-        } 
+        }
 
-        private static void ReorderProperties(XContainer entity, Func<IEnumerable<XElement>, IEnumerable<XElement>> sorter )
+        private static void ReorderProperties(XContainer entity, Func<IEnumerable<XElement>, IEnumerable<XElement>> sorter)
         {
             var props = entity.FindByLocalName("Property").ToList();
             // clear
