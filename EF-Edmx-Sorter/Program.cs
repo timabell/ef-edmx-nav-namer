@@ -31,7 +31,7 @@ namespace EfEdmxSorter
 
             var p = new Program(inputFileName);
 
-            p.CreateDocumentation();
+            p.ReorderConceptualProperties();
         }
 
         private static CommandLineParser.CommandLineParser CreateParser()
@@ -77,7 +77,7 @@ namespace EfEdmxSorter
             InputFileName = inputFileName;
         }
 
-        private void CreateDocumentation()
+        private void ReorderConceptualProperties()
         {
             XDocument doc = XDocument.Load(InputFileName);
 
