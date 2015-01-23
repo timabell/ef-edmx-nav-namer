@@ -52,39 +52,51 @@ namespace EfEdmxSorter
 
         private void ReorderConceptualProperties()
         {
-            XDocument doc = XDocument.Load(InputFileName);
+            // find the storage model, load all the tables and properties, remember the order
+            // find the conceptual model, re-order all the properties to match the storage model
+
+            var doc = LoadEdmx();
+
+            var storageModel = doc.FindByLocalName("StorageModels").First();
+
+            var conceptualModel = doc.FindByLocalName("ConceptualModels").First();
+            var entities = conceptualModel.FindByLocalName("EntityType");
+            foreach (var entity in entities)
+            {
+                ReorderProperties(entity);
+            }
+
+            Console.WriteLine("Writing result to {0}", InputFileName);
+            if (File.Exists(InputFileName))
+            {
+                File.Delete(InputFileName);
+            }
+            doc.Save(InputFileName);
+        }
+
+        private static void ReorderProperties(XElement entity)
+        {
+            var props = entity.FindByLocalName("Property").ToList();
+            // clear
+            props.Remove();
+            // re-add in new order, will be added to end
+            foreach (var prop in props.OrderBy(p => p.Attribute("Name").Value))
+            {
+                entity.Add(prop);
+            }
+        }
+
+        private XDocument LoadEdmx()
+        {
+            var doc = XDocument.Load(InputFileName);
 
             if (doc.Root == null)
             {
                 throw new Exception(string.Format("Loaded XDocument Root is null. File: {0}", InputFileName));
             }
-            var entityTypeElements = doc.FindByLocalName("EntityType");
-
-            int i = 0;
-            foreach (XElement entityTypeElement in entityTypeElements)
-            {
-                String tableName = entityTypeElement.Attribute("Name").Value;
-                var propertyElements = entityTypeElement.FindByLocalName("Property");
-
-                Console.Clear();
-                Console.WriteLine("Analyzing table {0} of {1}", i++, entityTypeElements.Count());
-                Console.WriteLine(" => TableName : {0}" +
-                                  "\n => property count : {1}", tableName, propertyElements.Count());
-
-                //AddNodeDocumentation(entityTypeElement, GetTableDocumentation(tableName));
-
-                foreach (XElement propertyElement in propertyElements)
-                {
-                    String columnName = propertyElement.Attribute("Name").Value;
-                    //AddNodeDocumentation(propertyElement, GetColumnDocumentation(tableName, columnName));
-                }
-            }
-
-            Console.WriteLine("Writing result to {0}", InputFileName);
-            if (File.Exists(InputFileName))
-                File.Delete(InputFileName);
-            doc.Save(InputFileName);
+            return doc;
         }
+
         private void AddNodeDocumentation(XElement element, String documentation)
         {
             // remove stale documentation
