@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -7,10 +6,10 @@ using System.Xml.Linq;
 using CommandLineParser.Arguments;
 using CommandLineParser.Exceptions;
 
-namespace EFTSQLDocumentation.Generator
+namespace EfEdmxSorter
 {
 
-    class Program : IDisposable
+    class Program
     {
         static void Main(string[] args)
         {
@@ -28,17 +27,13 @@ namespace EFTSQLDocumentation.Generator
             }
 
 
-            String connectionString = ((ValueArgument<SqlConnectionStringBuilder>)parser.LookupArgument("connectionString")).Value.ConnectionString;
-            String inputFileName = ((FileArgument)parser.LookupArgument("input")).Value.FullName;
-            String outputFileName = ((FileArgument)parser.LookupArgument("output")).Value != null ?
-                                        ((FileArgument)parser.LookupArgument("output")).Value.FullName :
-                                        inputFileName;
+            var inputFileName = ((FileArgument)parser.LookupArgument("input")).Value.FullName;
 
-            Program p = new Program(connectionString, inputFileName, outputFileName);
+            var p = new Program(inputFileName);
 
             p.CreateDocumentation();
-            p.Dispose();
         }
+
         private static CommandLineParser.CommandLineParser CreateParser()
         {
             CommandLineParser.CommandLineParser parser = new CommandLineParser.CommandLineParser();
@@ -75,30 +70,16 @@ namespace EFTSQLDocumentation.Generator
             return parser;
         }
 
-
-        public String ConnectionString { get; set; }
         public String InputFileName { get; set; }
-        public String OutputFileName { get; set; }
 
-        private SqlConnection _connection;
-
-        public Program(String connectionString, String inputFileName, String outputFileName)
+        public Program(String inputFileName)
         {
-            this.ConnectionString = connectionString;
-            this.InputFileName = inputFileName;
-            this.OutputFileName = outputFileName;
-
-            this._connection = new SqlConnection(connectionString);
-            this._connection.Open();
-        }
-        public void Dispose()
-        {
-            this._connection.Dispose();
+            InputFileName = inputFileName;
         }
 
         private void CreateDocumentation()
         {
-            XDocument doc = XDocument.Load(this.InputFileName);
+            XDocument doc = XDocument.Load(InputFileName);
 
             if (doc.Root == null)
             {
@@ -117,19 +98,19 @@ namespace EFTSQLDocumentation.Generator
                 Console.WriteLine(" => TableName : {0}" +
                                   "\n => property count : {1}", tableName, propertyElements.Count());
 
-                this.AddNodeDocumentation(entityTypeElement, GetTableDocumentation(tableName));
+                //AddNodeDocumentation(entityTypeElement, GetTableDocumentation(tableName));
 
                 foreach (XElement propertyElement in propertyElements)
                 {
                     String columnName = propertyElement.Attribute("Name").Value;
-                    this.AddNodeDocumentation(propertyElement, GetColumnDocumentation(tableName, columnName));
+                    //AddNodeDocumentation(propertyElement, GetColumnDocumentation(tableName, columnName));
                 }
             }
 
-            Console.WriteLine("Writing result to {0}", this.OutputFileName);
-            if (File.Exists(this.OutputFileName))
-                File.Delete(this.OutputFileName);
-            doc.Save(this.OutputFileName);
+            Console.WriteLine("Writing result to {0}", InputFileName);
+            if (File.Exists(InputFileName))
+                File.Delete(InputFileName);
+            doc.Save(InputFileName);
         }
         private void AddNodeDocumentation(XElement element, String documentation)
         {
@@ -141,37 +122,6 @@ namespace EFTSQLDocumentation.Generator
             var xmlns = element.GetDefaultNamespace();
 
             element.AddFirst(new XElement(xmlns + "Documentation", new XElement(xmlns + "Summary", documentation)));
-        }
-        private String GetTableDocumentation(String tableName)
-        {
-            using (SqlCommand command = new SqlCommand(@" SELECT [value] 
-                                                          FROM fn_listextendedproperty (
-                                                                'MS_Description', 
-                                                                'schema', 'dbo', 
-                                                                'table',  @TableName, 
-                                                                null, null)", this._connection))
-            {
-
-                command.Parameters.AddWithValue("TableName", tableName);
-
-                return command.ExecuteScalar() as String;
-            }
-        }
-        private String GetColumnDocumentation(String tableName, String columnName)
-        {
-            using (SqlCommand command = new SqlCommand(@"SELECT [value] 
-                                                         FROM fn_listextendedproperty (
-                                                                'MS_Description', 
-                                                                'schema', 'dbo', 
-                                                                'table', @TableName, 
-                                                                'column', @columnName)", this._connection))
-            {
-
-                command.Parameters.AddWithValue("TableName", tableName);
-                command.Parameters.AddWithValue("ColumnName", columnName);
-
-                return command.ExecuteScalar() as String;
-            }
         }
     }
 }
