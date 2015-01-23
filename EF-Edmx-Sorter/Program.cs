@@ -67,8 +67,11 @@ namespace EfEdmxSorter
             {
                 switch (sortMethod)
                 {
+                    case SortMethod.None:
+                        ReorderElements(entity, (x) => x, "Property");
+                        break;
                     case SortMethod.Alphabetical:
-                        ReorderProperties(entity, AlphabeticalSorter);
+                        ReorderElements(entity, AlphabeticalSorter, "Property");
                         break;
                     case SortMethod.StorageModel:
                         ApplyStorageSort(entity, storageEntities);
@@ -76,6 +79,8 @@ namespace EfEdmxSorter
                     default:
                         throw new NotImplementedException(string.Format("Unknown sort method {0}", sortMethod));
                 }
+                // move navigation properties to end, leaving in original order
+                ReorderElements(entity, (x) => x, "NavigationProperty");
             }
 
             Console.WriteLine("Writing result to {0}", InputFileName);
@@ -86,7 +91,7 @@ namespace EfEdmxSorter
             doc.Save(InputFileName);
         }
 
-        private static void ApplyStorageSort(XElement entity, List<XElement> storageEntities)
+        private static void ApplyStorageSort(XElement entity, IEnumerable<XElement> storageEntities)
         {
             var entityName = entity.NameAttribute();
             var storageEntity = storageEntities.SingleOrDefault(s => s.NameAttribute() == entityName);
@@ -96,7 +101,7 @@ namespace EfEdmxSorter
                 return;
             }
             var storageProps = storageEntity.FindByLocalName("Property");
-            ReorderProperties(entity, StorageSorter(storageProps));
+            ReorderElements(entity, StorageSorter(storageProps), "Property");
         }
 
         private static Func<IEnumerable<XElement>, IEnumerable<XElement>> StorageSorter(IEnumerable<XElement> storageProps)
@@ -129,9 +134,9 @@ namespace EfEdmxSorter
             return input.OrderBy(p => p.NameAttribute());
         }
 
-        private static void ReorderProperties(XContainer entity, Func<IEnumerable<XElement>, IEnumerable<XElement>> sorter)
+        private static void ReorderElements(XContainer entity, Func<IEnumerable<XElement>, IEnumerable<XElement>> sorter, string elementName)
         {
-            var props = entity.FindByLocalName("Property").ToList();
+            var props = entity.FindByLocalName(elementName).ToList();
             // clear
             props.Remove();
             // re-add in new order, will be added to end
