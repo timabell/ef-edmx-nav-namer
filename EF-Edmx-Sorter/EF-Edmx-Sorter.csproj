@@ -8,8 +8,8 @@
     <ProjectGuid>{A0C96132-79BB-402C-8B6D-A93DCF1AB449}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EFTSQLDocumentation.Generator</RootNamespace>
-    <AssemblyName>EFTSQLDocumentation.Generator</AssemblyName>
+    <RootNamespace>EfEdmxSorter</RootNamespace>
+    <AssemblyName>EfEdmxSorter</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
