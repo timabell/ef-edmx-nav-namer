@@ -13,7 +13,7 @@ namespace EfEdmxSorter
     {
         static void Main(string[] args)
         {
-            CommandLineParser.CommandLineParser parser = CreateParser();
+            var parser = CreateParser();
 
             try
             {
@@ -36,37 +36,10 @@ namespace EfEdmxSorter
 
         private static CommandLineParser.CommandLineParser CreateParser()
         {
-            CommandLineParser.CommandLineParser parser = new CommandLineParser.CommandLineParser();
-            ValueArgument<SqlConnectionStringBuilder> connectionStringArgument = new ValueArgument<SqlConnectionStringBuilder>('c', "connectionString", "ConnectionString of the documented database")
-            {
-                Optional = false,
-                ConvertValueHandler = (stringValue) =>
-                {
-                    SqlConnectionStringBuilder connectionStringBuilder;
-                    try
-                    {
-                        connectionStringBuilder = new SqlConnectionStringBuilder(stringValue);
-                    }
-                    catch
-                    {
-                        throw new InvalidConversionException("invalid connection string", "connectionString");
-                    }
-                    if (String.IsNullOrEmpty(connectionStringBuilder.InitialCatalog))
-                    {
-                        throw new InvalidConversionException("no InitialCatalog was specified", "connectionString");
-                    }
+            var parser = new CommandLineParser.CommandLineParser { IgnoreCase = true };
 
-                    return connectionStringBuilder;
-                }
-            };
-            FileArgument inputFileArgument = new FileArgument('i', "input", "original edmx file") { FileMustExist = true, Optional = false };
-            FileArgument outputFileArgument = new FileArgument('o', "output", "output edmx file - Default : original edmx file") { FileMustExist = false, Optional = true };
+            parser.Arguments.Add(new FileArgument('i', "input", "original edmx file") { FileMustExist = true, Optional = false });
 
-            parser.Arguments.Add(connectionStringArgument);
-            parser.Arguments.Add(inputFileArgument);
-            parser.Arguments.Add(outputFileArgument);
-
-            parser.IgnoreCase = true;
             return parser;
         }
 
