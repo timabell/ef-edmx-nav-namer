@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("EFTSQLDocumentation.Generator, see See https://github.com/timabell/ef-edmx-sorter")]
+[assembly: AssemblyTitle("See https://github.com/timabell/ef-edmx-nav-namer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("EF-Edmx-Sorter")]
+[assembly: AssemblyProduct("EF-Edmx-Nav-Namer")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

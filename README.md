@@ -1,18 +1,18 @@
 About
 =====
 
-Project site: https://github.com/timabell/ef-edmx-sorter
+Project site: https://github.com/timabell/ef-edmx-nav-namer
 
-Re-orders the conceptual model properties in a `.edmx` file to match the order of the storage model properties
+Renames the navigation properties in a `.edmx` file to match the foreign key names based on a pattern match.
 
-Created to solve this annoyance http://stackoverflow.com/q/3498052/10245 and save me a bunch of time.
+Useful when you're doing databse-first and the update-from-database feature makes a mess of the names.
 
-Source code of https://github.com/timabell/ef-document-generator used as a starting point for creating this.
+Source code of https://github.com/timabell/ef-edmx-sorter used as a starting point for creating this.
 
 Usage
 =====
 
-    ef-edmx-sorter.exe -i path\to\your\Model.edmx
+    ef-edmx-nav-namer.exe -i path\to\your\Model.edmx
 
 Licence
 =======
